@@ -27,7 +27,7 @@ sudo touch "$LOG_FILE"
 tmux new-session -d -s rsync_"$FILE"
 tmux send -t rsync_"$FILE" "export RSYNC_SKIP_COMPRESS='3fr/3g2/3gp/3gpp/7z/aac/ace/amr/apk/appx/appxbundle/arc/arj/arw/asf/avi/bz2/cab/cr2/crypt[5678]/dat/dcr/deb/dmg/drc/ear/erf/flac/flv/gif/gpg/gz/iiq/iso/jar/jp2/jpeg/jpg/k25/kdc/lz/lzma/lzo/m4[apv]/mef/mkv/mos/mov/mp[34]/mpeg/mp[gv]/msi/nef/oga/ogg/ogv/opus/orf/pef/png/qt/rar/rpm/rw2/rzip/s7z/sfx/sr2/srf/svgz/t[gb]z/tlz/txz/vob/wim/wma/wmv/xz/zip'
 export USER='max'
-export HOST='littlebradle'
+export HOST='littlebradley'
 export PORT='22'
 export REMOTE_DIR='/home/$USER'
 export LOCAL_DIR='/home/$USER'
@@ -62,7 +62,7 @@ sudo touch "$LOG_FILE"
 tmux new-session -d -s rsync_"$FILE"
 tmux send -t rsync_"$FILE" "export RSYNC_SKIP_COMPRESS='3fr/3g2/3gp/3gpp/7z/aac/ace/amr/apk/appx/appxbundle/arc/arj/arw/asf/avi/bz2/cab/cr2/crypt[5678]/dat/dcr/deb/dmg/drc/ear/erf/flac/flv/gif/gpg/gz/iiq/iso/jar/jp2/jpeg/jpg/k25/kdc/lz/lzma/lzo/m4[apv]/mef/mkv/mos/mov/mp[34]/mpeg/mp[gv]/msi/nef/oga/ogg/ogv/opus/orf/pef/png/qt/rar/rpm/rw2/rzip/s7z/sfx/sr2/srf/svgz/t[gb]z/tlz/txz/vob/wim/wma/wmv/xz/zip'
 export USER='max'
-export HOST='littlebradle'
+export HOST='littlebradley'
 export PORT='22'
 export REMOTE_DIR='/home/$USER'
 export LOCAL_DIR='/home/$USER'
