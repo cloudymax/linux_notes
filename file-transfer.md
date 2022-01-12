@@ -2,20 +2,59 @@
 
 ## SCP
 
-From Local to remote:
+### From Local to remote:
 
 ```zsh
-export USER="max"
-export HOST="littlebradley"
-export PORT="22"
-export REMOTE_DIR="home/$USER"
-export LOCAL_DIR="home/$USER"
-export FILE="test.txt"
+export LOCAL_DIR="/home/$USER/test-data"
+export REMOTE_USER="max"
+export REMOTE_DIR="/home/$USER/test-data"
+export REMOTE_HOST="littlebradley"
+export REMOTE_PORT="22"
+export FILE="ubuntu-21.10-live-server-amd64.iso"
+export CYPHER='aes128-gcm@openssh.com'
+export SSH_KEY_FILE='/home/max/.ssh/flatbradley'
 
-scp -c  '$USER'@'$HOST':]file1 [[user@]dest_host:]file2
+scp -i $SSH_KEY_FILE \
+-p -r -P "$REMOTE_PORT" \
+-c "$CYPHER" \
+"$LOCAL_DIR"/"$FILE" \
+"$REMOTE_USER"@"$REMOTE_HOST":"$REMOTE_DIR"/"$FILE"
 
-sftp $USER@$HOST:$PORT /$REMOTE_DIR/$FILE $LOCAL_DIR/$FILE
 ```
+
+### From Remote to Local:
+
+```zsh
+export REMOTE_USER="max"
+export REMOTE_DIR="/home/$USER/test-data"
+export REMOTE_HOST="littlebradley"
+export REMOTE_PORT="22"
+export LOCAL_DIR="/home/$USER/test-data"
+export FILE="ubuntu-21.10-live-server-amd64.iso"
+export CYPHER='aes128-gcm@openssh.com'
+export SSH_KEY_FILE='/home/max/.ssh/flatbradley'
+
+scp -i $SSH_KEY_FILE \
+-p -r -P "$REMOTE_PORT" \
+-c "$CYPHER" \
+"$REMOTE_USER"@"$REMOTE_HOST":"$REMOTE_DIR"/"$FILE" "$LOCAL_DIR"/"$FILE"
+
+```
+
+### Passthrough
+
+```zsh
+export REMOTE_USER="max"
+export REMOTE_DIR="/home/$USER/test-data"
+export REMOTE_HOST="flatbradley"
+export REMOTE_PORT="22"
+export LOCAL_DIR="/home/$USER/test-data"
+export FILE="ubuntu-21.10-live-server-amd64.iso"
+export CYPHER='aes128-gcm@openssh.com'
+export SSH_KEY_FILE='/home/max/.ssh/flatbradley'
+
+scp -i $SSH_KEY_FILE -p -r -P "$REMOTE_PORT" -c "$CYPHER" "$REMOTE_USER"@"$REMOTE_HOST":"$REMOTE_DIR"/"$FILE" "$LOCAL_DIR"/"$FILE"
+
 
 
 ## Fast RSYNC
@@ -90,6 +129,6 @@ rsync --times \
 $USER@$HOST:$REMOTE_DIR/$FILE $LOCAL_DIR" ENTER
 
 tmux attach-session -t rsync_"$FILE"
-tmux kill-session -t session_one
+tmux kill-session -t rsync_"$FILE"
   
   
