@@ -33,14 +33,18 @@ export LOCAL_DIR="/home/$USER"
 export FILE="test-data"
 
 rsync --times \
-  --links \
-  --hard-links \
+  --archive \
+  --backup \
+  --backup-dir=/tmp \
+  --suffix=bkp \
+  --checksum \
+  --compress \
   --skip-compress=$RSYNC_SKIP_COMPRESS \
   --recursive \
-  --progress \
   --human-readable \
   --verbose \
-  -e '/usr/bin/ssh -T -c aes256-gcm@openssh.com -o Compression=no -x' \
+  --progress \
+  -p -e '/usr/bin/ssh -T -c aes128-gcm@openssh.com -o Compression=no -x' \
   $LOCAL_DIR/$FILE $USER@$HOST:$REMOTE_DIR/$FILE
 ```
 
@@ -58,14 +62,18 @@ export LOCAL_DIR="/home/$USER"
 export FILE="test-data"
 
 rsync --times \
-  --links \
-  --hard-links \
+  --archive \
+  --backup \
+  --backup-dir=/tmp \
+  --suffix=bkp \
+  --checksum \
+  --compress \
   --skip-compress=$RSYNC_SKIP_COMPRESS \
   --recursive \
   --human-readable \
   --verbose \
   --progress \
-  -p -e '/usr/bin/ssh -T -c aes256-gcm@openssh.com -o Compression=no -x' \
+  -p -e '/usr/bin/ssh -T -c aes128-gcm@openssh.com -o Compression=no -x' \
   $USER@$HOST:$REMOTE_DIR/$FILE $LOCAL_DIR/$FILE
   
   
