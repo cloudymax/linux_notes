@@ -1,6 +1,6 @@
 # File Transfer Notes
 
-## SFTP
+## SCP
 
 From Local to remote:
 
@@ -11,6 +11,8 @@ export PORT="22"
 export REMOTE_DIR="home/$USER"
 export LOCAL_DIR="home/$USER"
 export FILE="test.txt"
+
+scp -c  '$USER'@'$HOST':]file1 [[user@]dest_host:]file2
 
 sftp $USER@$HOST:$PORT /$REMOTE_DIR/$FILE $LOCAL_DIR/$FILE
 ```
@@ -36,6 +38,7 @@ export LOG_FILE='/var/log/transfers.log'
 export FORMAT='json'
 export BACKUP_DIR='/home/max/backups'
 export SSH_KEY_FILE='/home/max/.ssh/flatbradley'
+export CYPHER="aes128-gcm@openssh.com"
 rsync --times \
 --archive \
 --log-file='$LOG_FILE' \
@@ -47,7 +50,7 @@ rsync --times \
 --human-readable \
 --verbose \
 --progress \
--p -b -e 'ssh -i $KEY_FILE -o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none -T -c aes128-gcm@openssh.com -o Compression=no -x' \
+-p -b -e 'ssh -i $KEY_FILE -o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none -T -c '$CYPHER' -o Compression=no -x' \
 $LOCAL_DIR/$FILE $USER@$HOST:$REMOTE_DIR" ENTER
 
 tmux attach-session -t rsync_"$FILE"
@@ -71,6 +74,7 @@ export LOG_FILE='/var/log/transfers.log'
 export FORMAT='json'
 export BACKUP_DIR='/home/max/backups'
 export SSH_KEY_FILE='/home/max/.ssh/flatbradley'
+export CYPHER="aes128-gcm@openssh.com"
 rsync --times \
 --archive \
 --log-file='$LOG_FILE' \
@@ -82,7 +86,7 @@ rsync --times \
 --human-readable \
 --verbose \
 --progress \
--p -b -e 'ssh -i $KEY_FILE -o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none -T -c aes128-gcm@openssh.com -o Compression=no -x' \
+-p -b -e 'ssh -i $KEY_FILE -o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none -T -c '$CYPHER' -o Compression=no -x' \
 $USER@$HOST:$REMOTE_DIR/$FILE $LOCAL_DIR" ENTER
 
 tmux attach-session -t rsync_"$FILE"
