@@ -4,7 +4,7 @@
 
 #place to save the Host private key
 #the Host private key stays secret
-export KEY_FILE="/Users/4008575/.ssh/flatbradley"
+export KEY_FILE="/home/max/.ssh/flatbradley"
 yes |ssh-keygen -b 2048 -f "${KEY_FILE}" -t rsa -q -N ""
 
 # some placeholders
