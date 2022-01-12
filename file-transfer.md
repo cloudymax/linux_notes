@@ -38,7 +38,7 @@ export LOG_FILE='/var/log/transfers.log'
 export FORMAT='json'
 export BACKUP_DIR='/home/max/backups'
 export SSH_KEY_FILE='/home/max/.ssh/flatbradley'
-export CYPHER="aes128-gcm@openssh.com"
+export CYPHER='aes128-gcm@openssh.com'
 rsync --times \
 --archive \
 --log-file='$LOG_FILE' \
@@ -74,7 +74,7 @@ export LOG_FILE='/var/log/transfers.log'
 export FORMAT='json'
 export BACKUP_DIR='/home/max/backups'
 export SSH_KEY_FILE='/home/max/.ssh/flatbradley'
-export CYPHER="aes128-gcm@openssh.com"
+export CYPHER='aes128-gcm@openssh.com'
 rsync --times \
 --archive \
 --log-file='$LOG_FILE' \
