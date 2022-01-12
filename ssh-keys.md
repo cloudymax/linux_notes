@@ -4,13 +4,13 @@
 
 #place to save the Host private key
 #the Host private key stays secret
-export KEY_FILE="/Users/4008575/.ssh/BigBradley"
+export KEY_FILE="/Users/4008575/.ssh/flatbradley"
 yes |ssh-keygen -b 2048 -f "${KEY_FILE}" -t rsa -q -N ""
 
 # some placeholders
-export LOCAL_USER="4008575"
+export LOCAL_USER="max"
 export REMOTE_USER="max"
-export REMOTE_HOST="192.168.50.64"
+export REMOTE_HOST="192.168.50.50"
 #copy the host's PUBLIC key into the clients
 
 ssh-copy-id -i $KEY_FILE \
