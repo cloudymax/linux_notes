@@ -1,0 +1,49 @@
+metadata:
+  name: web-server
+  namespace: nginx-hello
+spec:
+  selector:
+    matchLabels:
+      app: nginx-hello
+  template:
+    metadata:
+      labels:
+        app: nginx-hello
+    spec:
+      containers:
+      - name: nginx-hello
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-hello-service
+  namespace: nginx-hello
+spec:
+  selector:
+    app: nginx-hello
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-hello-ingress
+  namespace: nginx-hello
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: k8s.cloudydev.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-hello-service
+            port:
+              number: 5000
