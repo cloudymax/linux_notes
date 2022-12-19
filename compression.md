@@ -13,7 +13,11 @@ export PIGZ_TARGET_DIR="smolk8s"
 # Single file
 pigz -$COMPRESSION_LEVEL -k -p$CPU_CORES ubuntu-20.04-beta-desktop-amd64.iso
 
-#directory
+# Directory
+
 tar --use-compress-program="pigz -$PIGZ_COMPRESSION_LEVEL -k -p$PIGZ_THREADS" \
 -cf $PIGZ_TARGET_DIR.tar.gz $PIGZ_TARGET_DIR
+
+# Decompress
+pigz -dc smolk8s.tar.gz | tar xf -
 ```
