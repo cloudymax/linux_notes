@@ -1,3 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-hello
+---
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: web-server
   namespace: nginx-hello
