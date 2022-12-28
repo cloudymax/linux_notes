@@ -44,7 +44,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: k8s.cloudydev.net
+  - host: nginx-hello.cloudydev.net
     http:
       paths:
       - path: /
