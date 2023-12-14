@@ -85,6 +85,55 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set operator.replicas=1
 ```
 
+## Install CertManager
+
+```bash
+helm repo add jetstack https://charts.jetstack.io
+
+helm install cert-manager jetstack/cert-manager --version v1.13.3 \
+    --namespace cert-manager \
+    --set installCRDs=true \
+    --create-namespace \
+    --set "extraArgs={--feature-gates=ExperimentalGatewayAPISupport=true}"
+```
+
+## Create a self-signed issuer
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: self-signed
+  namespace: default
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ca
+  namespace: default
+spec:
+  isCA: true
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  secretName: ca
+  commonName: ca
+  issuerRef:
+    name: self-signed
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ca-issuer
+  namespace: default
+spec:
+  ca:
+    secretName: ca
+```
+
 ## enable hubble ui
 
 ```bash
@@ -137,10 +186,6 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 helm repo add jetstack https://charts.jetstack.io
 
 helm repo update
-
-helm install cert-manager jetstack/cert-manager \
-  --namespace cert-manager \
-  --create-namespace
 
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
