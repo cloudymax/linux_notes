@@ -48,10 +48,16 @@ export KUBECONFIG=~/.config/kube/rke2.yaml
 
 ## Update Cilium for l2 advertisement, kube proxy replacement
 
-- l2announcements makes loadbalancers work with local dhcp
-- kubeProxyReplacement required for l2announcements to work
+l2 Announcement docs: https://docs.cilium.io/en/stable/network/l2-announcements/
+  - l2announcements makes loadbalancers work with local dhcp
+  - kubeProxyReplacement required for l2announcements to work
 
+Loadbalancer IP Address Management (LB IPAM) Docs: https://docs.cilium.io/en/stable/network/lb-ipam/
+  - provide Ip address pools like metallb
+  - cannot use /32 range because it assumed 1st and last IPs wont be used. Needs a /30 at lowest. Annoying
+    
 ```bash
+helm repo add cilium https://helm.cilium.io/
 helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set l2announcements.enabled=true \
    --set kubeProxyReplacement=true \
@@ -59,7 +65,7 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set ingressController.enabled=true \
    --set ingressController.loadbalancerMode=dedicated \
    --set externalIPs.enabled=true \
-   --set devices=br0 \
+   --set devices=enp0s2 \
    --set k8sClientRateLimit.qps=5 \
    --set k8sClientRateLimit.burst=10 \
    --set k8sServiceHost=192.168.50.101 \
@@ -76,7 +82,6 @@ helm upgrade rke2-cilium cilium/cilium \
   --reuse-values \
   --set hubble.relay.enabled=true \
   --set hubble.enabled=true \
-  --set hubble.ui.enabled=true \
   --set hubble.ui.enabled=true
 
 k port-forward hubble-ui-5b6f9b49cf-m72gt 30000:8081 --address 0.0.0.0
