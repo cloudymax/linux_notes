@@ -26,7 +26,7 @@ node-ip: 192.168.50.100
 node-external-ip: 10.2.0.3
 ```
 
-# Install RKE2
+## Install RKE2
 
 ```bash
 curl -sfL https://get.rke2.io | sh -
@@ -38,7 +38,7 @@ systemctl start rke2-server.service &
 journalctl -u rke2-server -f
 ```
 
-## make the kubeconfig usable
+## Make the kubeconfig usable
 
 ```bash
 sudo cp /etc/rancher/rke2/rke2.yaml ~/.config/kube/rke2.yaml
@@ -47,6 +47,9 @@ export KUBECONFIG=~/.config/kube/rke2.yaml
 ```
 
 ## Update Cilium for l2 advertisement, kube proxy replacement
+
+- l2announcements makes loadbalancers work with local dhcp
+- kubeProxyReplacement required for l2announcements to work
 
 ```bash
 helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
@@ -57,20 +60,31 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set ingressController.loadbalancerMode=dedicated \
    --set externalIPs.enabled=true \
    --set devices=br0 \
-   --set k8sClientRateLimit.qps=100 \
-   --set k8sClientRateLimit.burst=150 \
+   --set k8sClientRateLimit.qps=5 \
+   --set k8sClientRateLimit.burst=10 \
    --set k8sServiceHost=192.168.50.101 \
-   --set k8sServicePort=6443
+   --set k8sServicePort=6443 \
+   --set operator.replicas=1
 ```
 
-# enable hubble ui
-helm upgrade rke2-cilium cilium/cilium --version 1.14.2 --namespace kube-system --reuse-values --set hubble.relay.enabled=true --set hubble.enabled=true --set hubble.ui.enabled=true
+## enable hubble ui
 
-# expose the ui
+```bash
+helm upgrade rke2-cilium cilium/cilium \
+  --version 1.14.2 \
+  --namespace kube-system \
+  --reuse-values \
+  --set hubble.relay.enabled=true \
+  --set hubble.enabled=true \
+  --set hubble.ui.enabled=true \
+  --set hubble.ui.enabled=true
+
 k port-forward hubble-ui-5b6f9b49cf-m72gt 30000:8081 --address 0.0.0.0
+```
 
+## Create a address adverstisement policy
 
-# Create a address adverstisement policy
+```yaml
 ---
 apiVersion: "cilium.io/v2alpha1"
 kind: CiliumL2AnnouncementPolicy
@@ -81,9 +95,11 @@ spec:
   - br0
   externalIPs: true
   loadBalancerIPs: true
+```
 
+## Create a Loadbalancer IP pool
 
-# Create a Loadbalancer IP pool
+```yaml
 ---
 apiVersion: "cilium.io/v2alpha1"
 kind: CiliumLoadBalancerIPPool
@@ -92,8 +108,11 @@ metadata:
 spec:
   cidrs:
   - cidr: "192.168.50.200/30"
+```
 
+## Install Rancher and CertManager
 
+```bash
 helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 
 kubectl create namespace cattle-system
@@ -111,3 +130,4 @@ helm install rancher rancher-latest/rancher \
   --set hostname=192.168.50.202.sslip.io \
   --set replicas=1 \
   --set bootstrapPassword=password
+```
