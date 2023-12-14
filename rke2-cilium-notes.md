@@ -53,12 +53,14 @@ export KUBECONFIG=~/.config/kube/rke2.yaml
 Using Cilium as a Metallb replacement for l2 loadbalancing requires confiuring the following:
 
 1. l2 Announcement docs: https://docs.cilium.io/en/stable/network/l2-announcements/
-  - l2announcements makes loadbalancers work with local dhcp
-  - kubeProxyReplacement required for l2announcements to work
+  
+    - l2announcements makes loadbalancers work with local dhcp
+    - kubeProxyReplacement required for l2announcements to work
 
 2. Loadbalancer IP Address Management (LB IPAM) Docs: https://docs.cilium.io/en/stable/network/lb-ipam/
-  - provide Ip address pools like metallb
-  - cannot use /32 range because it assumed 1st and last IPs wont be used. Needs a /30 at lowest. Annoying
+  
+    - provide Ip address pools like metallb
+    - cannot use /32 range because it assumed 1st and last IPs wont be used. Needs a /30 at lowest. Annoying
 
 3. loadbalancerMode should be 'Shared' this will let ingresses use the same eternal IP, when set to 'dedicated' each ingress will spawn a new loadbalancer and require a new IP address.
 
