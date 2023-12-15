@@ -80,7 +80,7 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set devices=enp0s2 \
    --set k8sClientRateLimit.qps=5 \
    --set k8sClientRateLimit.burst=10 \
-   --set k8sServiceHost=10.2.0.2 \
+   --set k8sServiceHost=192.168.50.101 \
    --set k8sServicePort=6443 \
    --set operator.replicas=1
 ```
@@ -93,44 +93,31 @@ helm repo add jetstack https://charts.jetstack.io
 helm install cert-manager jetstack/cert-manager --version v1.13.3 \
     --namespace cert-manager \
     --set installCRDs=true \
-    --create-namespace
+    --create-namespace \
+    --set "extraArgs={--feature-gates=ExperimentalGatewayAPISupport=true}"
 ```
 
-## Create a self-signed issuer
+## Create a cluster-issuer
 
 ```yaml
 apiVersion: cert-manager.io/v1
-kind: Issuer
+kind: ClusterIssuer
 metadata:
-  name: self-signed
-  namespace: default
+  name: letsencrypt-staging
 spec:
-  selfSigned: {}
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: ca
-  namespace: default
-spec:
-  isCA: true
-  privateKey:
-    algorithm: ECDSA
-    size: 256
-  secretName: ca
-  commonName: ca
-  issuerRef:
-    name: self-signed
-    kind: Issuer
----
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: ca-issuer
-  namespace: default
-spec:
-  ca:
-    secretName: ca
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: admin@cloudydev.net
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    # Enable the HTTP-01 challenge provider
+    solvers:
+    - http01:
+        ingress:
+          ingressClassName: cilium
 ```
 
 ## enable hubble ui
@@ -143,8 +130,41 @@ helm upgrade rke2-cilium cilium/cilium \
   --set hubble.relay.enabled=true \
   --set hubble.enabled=true \
   --set hubble.ui.enabled=true
+```
 
-k port-forward hubble-ui-5b6f9b49cf-m72gt 30000:8081 --address 0.0.0.0
+## Create an ingress for hubble
+
+- you need to add the annotation:
+- you need to use a nonworking path ie: "/nope" at first to get your cert then change it back
+- see https://github.com/cilium/cilium/issues/22340 for explanation
+
+```bash
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hubble-ingress
+  namespace: kube-system
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  tls:
+  - hosts:
+    - hubble.buildstar.online
+    secretName: "hubble-tls"
+  ingressClassName: cilium
+  rules:
+  - host: hubble.buildstar.online
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: hubble-ui
+            port:
+              number: 80
 ```
 
 ## Create a address adverstisement policy
@@ -175,20 +195,46 @@ spec:
   - cidr: "192.168.50.200/30"
 ```
 
-## Install Rancher and CertManager
+## Install Rancher
 
 ```bash
 helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 
 kubectl create namespace cattle-system
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.crds.yaml
-helm repo add jetstack https://charts.jetstack.io
-
-helm repo update
 
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
-  --set hostname=192.168.50.202.sslip.io \
+  --set hostname=rancher.buildstar.online \
   --set replicas=1 \
   --set bootstrapPassword=password
+```
+
+## Update Rancher Ingress
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  name: rancher
+  namespace: cattle-system
+spec:
+  ingressClassName: cilium
+  rules:
+  - host: rancher.buildstar.online
+    http:
+      paths:
+      - backend:
+          service:
+            name: rancher
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - rancher.buildstar.online
+    secretName: tls-rancher-ingress
 ```
