@@ -80,7 +80,7 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set devices=enp0s2 \
    --set k8sClientRateLimit.qps=5 \
    --set k8sClientRateLimit.burst=10 \
-   --set k8sServiceHost=192.168.50.101 \
+   --set k8sServiceHost=10.2.0.2 \
    --set k8sServicePort=6443 \
    --set operator.replicas=1
 ```
@@ -93,8 +93,7 @@ helm repo add jetstack https://charts.jetstack.io
 helm install cert-manager jetstack/cert-manager --version v1.13.3 \
     --namespace cert-manager \
     --set installCRDs=true \
-    --create-namespace \
-    --set "extraArgs={--feature-gates=ExperimentalGatewayAPISupport=true}"
+    --create-namespace
 ```
 
 ## Create a self-signed issuer
