@@ -41,6 +41,7 @@ journalctl -u rke2-server -f
 ## Make the kubeconfig usable
 
 ```bash
+mkdir -p ~/.config/kube
 sudo cp /etc/rancher/rke2/rke2.yaml ~/.config/kube/rke2.yaml
 sudo chown $USER:$USER ~/.config/kube/rke2.yaml
 export KUBECONFIG=~/.config/kube/rke2.yaml
@@ -93,13 +94,13 @@ helm repo add jetstack https://charts.jetstack.io
 helm install cert-manager jetstack/cert-manager --version v1.13.3 \
     --namespace cert-manager \
     --set installCRDs=true \
-    --create-namespace \
-    --set "extraArgs={--feature-gates=ExperimentalGatewayAPISupport=true}"
+    --create-namespace
 ```
 
 ## Create a cluster-issuer
 
 ```yaml
+/bin/cat << EOF > issuer.yaml
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -118,6 +119,40 @@ spec:
     - http01:
         ingress:
           ingressClassName: cilium
+EOF
+```
+
+## Create a address adverstisement policy
+
+```yaml
+/bin/cat << EOF > l2-policy.yaml
+---
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: basic-policy
+spec:
+  interfaces:
+  - eth0
+  externalIPs: true
+  loadBalancerIPs: true
+EOF
+```
+
+## Create a Loadbalancer IP pool
+
+```yaml
+/bin/cat << EOF > ip-pool.yaml
+---
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: "main-pool"
+spec:
+  cidrs:
+  - cidr: "78.46.214.105/30"
+  - cidr: "49.12.116.58/30"
+EOF
 ```
 
 ## enable hubble ui
@@ -135,10 +170,11 @@ helm upgrade rke2-cilium cilium/cilium \
 ## Create an ingress for hubble
 
 - you need to add the annotation:
-- you need to use a nonworking path ie: "/nope" at first to get your cert then change it back
+- you need to use a nonworking path ie: "/no" at first to get your cert then change it back
 - see https://github.com/cilium/cilium/issues/22340 for explanation
 
 ```bash
+/bin/cat << EOF > hubble-ingress.yaml
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -158,42 +194,17 @@ spec:
   - host: hubble.buildstar.online
     http:
       paths:
-      - path: /
+      - path: /no
         pathType: Prefix
         backend:
           service:
             name: hubble-ui
             port:
               number: 80
+EOF
 ```
 
-## Create a address adverstisement policy
-
-```yaml
----
-apiVersion: "cilium.io/v2alpha1"
-kind: CiliumL2AnnouncementPolicy
-metadata:
-  name: basic-policy
-spec:
-  interfaces:
-  - br0
-  externalIPs: true
-  loadBalancerIPs: true
-```
-
-## Create a Loadbalancer IP pool
-
-```yaml
----
-apiVersion: "cilium.io/v2alpha1"
-kind: CiliumLoadBalancerIPPool
-metadata:
-  name: "main-pool"
-spec:
-  cidrs:
-  - cidr: "192.168.50.200/30"
-```
+- After your certificate is ready, change the path in the ingress to just be "/"
 
 ## Install Rancher
 
@@ -212,6 +223,8 @@ helm install rancher rancher-latest/rancher \
 ## Update Rancher Ingress
 
 ```yaml
+/bin/cat << EOF > rancher-ingress.yaml
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -231,12 +244,13 @@ spec:
             name: rancher
             port:
               number: 80
-        path: /
+        path: /no
         pathType: Prefix
   tls:
   - hosts:
     - rancher.buildstar.online
     secretName: tls-rancher-ingress
+EOF
 ```
 
 ## Install local-path provisioner
