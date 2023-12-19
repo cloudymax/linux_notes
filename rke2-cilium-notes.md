@@ -22,8 +22,8 @@ cni:
 disable:
   - rke2-canal
   - rke2-ingress-nginx
-node-ip: 192.168.50.100
-node-external-ip: 10.2.0.3
+node-ip: 100.64.0.2
+node-external-ip: 100.64.0.2
 ```
 
 ## Install RKE2
@@ -78,10 +78,10 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set ingressController.enabled=true \
    --set ingressController.loadbalancerMode=shared \
    --set externalIPs.enabled=true \
-   --set devices=enp0s2 \
+   --set devices=tailscale0 \
    --set k8sClientRateLimit.qps=5 \
    --set k8sClientRateLimit.burst=10 \
-   --set k8sServiceHost=192.168.50.101 \
+   --set k8sServiceHost=100.64.0.2 \
    --set k8sServicePort=6443 \
    --set operator.replicas=1
 ```
@@ -133,7 +133,7 @@ metadata:
   name: basic-policy
 spec:
   interfaces:
-  - eth0
+  - tailscale0
   externalIPs: true
   loadBalancerIPs: true
 EOF
@@ -150,8 +150,7 @@ metadata:
   name: "main-pool"
 spec:
   cidrs:
-  - cidr: "78.46.214.105/30"
-  - cidr: "49.12.116.58/30"
+  - cidr: "100.64.0.2/30"
 EOF
 ```
 
