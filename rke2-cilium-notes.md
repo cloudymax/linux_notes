@@ -1,7 +1,15 @@
-# Using Cilium with RKE2 for LoadBalancing and Ingress
+# Private-Cloud setup using Using Cilium, RKE2, Headscale, and Ingress-Nginx
 
-Helm Chart: https://github.com/cilium/cilium/tree/v1.14.5/install/kubernetes/cilium
-Current Version: 1.14.5
+Expose on-prem kubernetes to the public-internet via a Headscale VPN and HAproxy.
+
+![traffic drawio](https://github.com/cloudymax/linux_notes/assets/84841307/256cf1b9-6996-4ce3-9225-1fd5902aa5cf)
+
+1. Create VM w/ public IP and install headscale
+2. Create on-prem SLIRP-networking VM and install Headscale
+3. setup HAproxy on both VMs to route traffic from the public-vm to the priavte-vm
+4. install kubernetes on the private-vm as described below
+5. use the private-vm's haproxy to point at a SLIRP ip-addess
+6. set the nginx-ingress's loadbalancer to use the SLIRP-address
 
 ## Create a RKE2 config file
 
@@ -70,6 +78,10 @@ Using Cilium as a Metallb replacement for l2 loadbalancing requires confiuring t
 5. k8sServiceHost must be set to the address where the k8s service is available, not sure how setting thsi to the WG interface would work yet...
     
 ```bash
+Helm Chart: https://github.com/cilium/cilium/tree/v1.14.5/install/kubernetes/cilium
+
+Current Version: 1.14.5
+
 helm repo add cilium https://helm.cilium.io/
 helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set l2announcements.enabled=true \
