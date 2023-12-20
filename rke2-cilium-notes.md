@@ -68,7 +68,7 @@ spec:
     l2announcements:
       enabled: true
     l7Proxy: true
-    ingressController
+    ingressController:
       enabled: false
       loadbalancerMode: shared
     externalIPs:
