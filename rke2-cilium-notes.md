@@ -32,7 +32,8 @@ cni:
   - cilium
 disable:
   - rke2-canal
-# Uncomment when using CIlium Ingress
+# Disable rke2 bundled nginx
+# fails with: docker invalid tar header: unknown
 #  - rke2-ingress-nginx
 
 # Internal Network IP
@@ -107,6 +108,15 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set k8sServiceHost=100.64.0.2 \
    --set k8sServicePort=6443 \
    --set operator.replicas=1
+```
+## Install Ingress-Nginx
+
+```bash
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/baremetal/deploy.yaml
+
+sed -i 's/NodePort/LoadBalancer/g' deploy.yaml
+
+kubectl apply -f deploy.yaml
 ```
 
 ## Install CertManager
