@@ -1,6 +1,4 @@
-# Private-Cloud setup using Using Cilium, RKE2, Headscale, and Ingress-Nginx
-
-Expose on-prem kubernetes to the public-internet via a Headscale VPN and HAproxy.
+# Cilium + RKE2 Notes
 
 ![traffic drawio](https://github.com/cloudymax/linux_notes/assets/84841307/256cf1b9-6996-4ce3-9225-1fd5902aa5cf)
 
@@ -10,6 +8,14 @@ Expose on-prem kubernetes to the public-internet via a Headscale VPN and HAproxy
 4. install kubernetes on the private-vm as described below
 5. use the private-vm's haproxy to point at a SLIRP ip-addess
 6. set the nginx-ingress's loadbalancer to use the SLIRP-address
+
+## Known Issues
+
+Cilium currently requires working around bugs related to tls-certificate request creation and ingress loadbalancer ip-addresses.
+
+  1. When creating an ingress, the route must be set to a non-working path like "/NothingToSeeHere" or the certificate challenge will fail.
+  2. The LoadBalancer created for an Ingress does not recieve traffic from HAproxy properly which limits some usecases.
+  3. LB-IPAM address pools cannot properly allocate a single, or non-continuous set of addresses. The pool only allows CIDR notation but ignores the first and last IP in the CIDR. Meaning taht one must use a /30 at minimum. In-practice this results in frequent misallocations. 
 
 ## Create a RKE2 config file
 
