@@ -46,6 +46,44 @@ node-external-ip: 100.64.0.2
 disable-kube-proxy: true
 ```
 
+## Create a Cilium config file
+
+```bash
+sudo mkdir -p /var/lib/rancher/rke2/server/manifests/r
+sudo nano /var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml
+```
+
+```yaml
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rke2-cilium
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    k8sServiceHost: 100.64.0.2
+    k8sServicePort: 6443
+    kubeProxyReplacement: true
+    l2announcements:
+      enabled: true
+    l7Proxy: true
+    ingressController
+      enabled: false
+      loadbalancerMode: shared
+    externalIPs:
+      enabled: true
+    devices: tailscale0
+    k8sClientRateLimit:
+      qps: 5
+      burst: 10
+    operator:
+      replicas: 1
+    encryption:
+      enabled: true
+      type: wireguard
+```
+
 ## Install RKE2
 
 ```bash
@@ -107,7 +145,9 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set k8sClientRateLimit.burst=10 \
    --set k8sServiceHost=100.64.0.2 \
    --set k8sServicePort=6443 \
-   --set operator.replicas=1
+   --set operator.replicas=1 \
+   --set encryption.enabled=true \
+   --set encryption.type=wireguard
 ```
 
 ## Install CertManager
