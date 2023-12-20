@@ -34,7 +34,7 @@ disable:
   - rke2-canal
 # Disable rke2 bundled nginx
 # fails with: docker invalid tar header: unknown
-#  - rke2-ingress-nginx
+  - rke2-ingress-nginx
 
 # Internal Network IP
 node-ip: 10.0.2.15
