@@ -105,6 +105,13 @@ sudo chown $USER:$USER ~/.config/kube/rke2.yaml
 export KUBECONFIG=~/.config/kube/rke2.yaml
 ```
 
+## Validate pod-to-pod encryption
+
+```bash
+kubectl -n kube-system exec -ti ds/cilium -- bash
+root@localhost:/home/cilium# cilium status | grep Encryption
+```
+
 ## Update Cilium for l2 advertisement, kube proxy replacement
 
 ### LoadBalanacing
