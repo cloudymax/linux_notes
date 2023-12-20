@@ -9,6 +9,25 @@
 5. use the private-vm's haproxy to point at a SLIRP ip-addess
 6. set the nginx-ingress's loadbalancer to use the SLIRP-address
 
+## LoadBalanacing Notes
+
+Using Cilium as a Metallb replacement for l2 loadbalancing requires confiuring the following:
+
+1. l2 Announcement docs: https://docs.cilium.io/en/stable/network/l2-announcements/
+  
+    - l2announcements makes loadbalancers work with local dhcp
+    - kubeProxyReplacement required for l2announcements to work
+
+2. Loadbalancer IP Address Management (LB IPAM) Docs: https://docs.cilium.io/en/stable/network/lb-ipam/
+    - provide Ip address pools like metallb
+    - cannot use /32 range because it assumed 1st and last IPs wont be used. Needs a /30 at lowest. Annoying
+
+3. loadbalancerMode should be 'Shared' this will let ingresses use the same eternal IP, when set to 'dedicated' each ingress will spawn a new loadbalancer and require a new IP address.
+
+4. 'externalIPs' muste be enabled and 'devices' must be set to the network adapter we will use for the loadbalancer IP assignments.
+
+5. k8sServiceHost must be set to the address where the k8s service is available.
+
 ## Known Issues
 
 Cilium currently requires working around bugs related to tls-certificate request creation and ingress loadbalancer ip-addresses.
@@ -110,51 +129,6 @@ export KUBECONFIG=~/.config/kube/rke2.yaml
 ```bash
 kubectl -n kube-system exec -ti ds/cilium -- bash
 root@localhost:/home/cilium# cilium status | grep Encryption
-```
-
-## Update Cilium for l2 advertisement, kube proxy replacement
-
-### LoadBalanacing
-
-Using Cilium as a Metallb replacement for l2 loadbalancing requires confiuring the following:
-
-1. l2 Announcement docs: https://docs.cilium.io/en/stable/network/l2-announcements/
-  
-    - l2announcements makes loadbalancers work with local dhcp
-    - kubeProxyReplacement required for l2announcements to work
-
-2. Loadbalancer IP Address Management (LB IPAM) Docs: https://docs.cilium.io/en/stable/network/lb-ipam/
-  
-    - provide Ip address pools like metallb
-    - cannot use /32 range because it assumed 1st and last IPs wont be used. Needs a /30 at lowest. Annoying
-
-3. loadbalancerMode should be 'Shared' this will let ingresses use the same eternal IP, when set to 'dedicated' each ingress will spawn a new loadbalancer and require a new IP address.
-
-4. 'externalIPs' muste be enabled and 'devices' must be set to the network adapter we will use for the loadbalancer IP assignments.
-
-5. k8sServiceHost must be set to the address where the k8s service is available, not sure how setting thsi to the WG interface would work yet...
-    
-```bash
-Helm Chart: https://github.com/cilium/cilium/tree/v1.14.5/install/kubernetes/cilium
-
-Current Version: 1.14.5
-
-helm repo add cilium https://helm.cilium.io/
-helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
-   --set l2announcements.enabled=true \
-   --set kubeProxyReplacement=true \
-   --set l7Proxy=true \
-   --set ingressController.enabled=false \
-   --set ingressController.loadbalancerMode=shared \
-   --set externalIPs.enabled=true \
-   --set devices=tailscale0 \
-   --set k8sClientRateLimit.qps=5 \
-   --set k8sClientRateLimit.burst=10 \
-   --set k8sServiceHost=100.64.0.2 \
-   --set k8sServicePort=6443 \
-   --set operator.replicas=1 \
-   --set encryption.enabled=true \
-   --set encryption.type=wireguard
 ```
 
 ## Install CertManager
