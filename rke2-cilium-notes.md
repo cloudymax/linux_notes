@@ -116,7 +116,7 @@ helm install cert-manager jetstack/cert-manager --version v1.13.3 \
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt-staging
+  name: letsencrypt-prod
 spec:
   acme:
     # The ACME server URL
@@ -125,7 +125,7 @@ spec:
     email: admin@cloudydev.net
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
-      name: letsencrypt-staging
+      name: letsencrypt-prod
     # Enable the HTTP-01 challenge provider
     solvers:
     - http01:
