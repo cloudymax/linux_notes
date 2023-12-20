@@ -26,18 +26,23 @@ sudo nano /etc/rancher/rke2/config.yaml
 
 ```yaml
 ---
-write-kubeconfig-mode: "0644"
-disable-kube-proxy: true
-node-label:
-  - "name=bradley"
-  - "gpus=true"
+write-kubeconfig-mode: "0600"
+node-label: []
 cni:
   - cilium
 disable:
   - rke2-canal
-  - rke2-ingress-nginx
-node-ip: 100.64.0.2
+# Uncomment when using CIlium Ingress
+#  - rke2-ingress-nginx
+
+# Internal Network IP
+node-ip: 10.0.2.15
+
+# VPN IP Address
 node-external-ip: 100.64.0.2
+
+# Required for l2 IP Announcement
+disable-kube-proxy: true
 ```
 
 ## Install RKE2
@@ -93,7 +98,7 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set l2announcements.enabled=true \
    --set kubeProxyReplacement=true \
    --set l7Proxy=true \
-   --set ingressController.enabled=true \
+   --set ingressController.enabled=false \
    --set ingressController.loadbalancerMode=shared \
    --set externalIPs.enabled=true \
    --set devices=tailscale0 \
@@ -136,7 +141,7 @@ spec:
     solvers:
     - http01:
         ingress:
-          ingressClassName: cilium
+          ingressClassName: nginx
 EOF
 ```
 
@@ -206,12 +211,12 @@ spec:
   - hosts:
     - hubble.buildstar.online
     secretName: "hubble-tls"
-  ingressClassName: cilium
+  ingressClassName: nginx
   rules:
   - host: hubble.buildstar.online
     http:
       paths:
-      - path: /no
+      - path: /
         pathType: Prefix
         backend:
           service:
@@ -251,7 +256,7 @@ metadata:
   name: rancher
   namespace: cattle-system
 spec:
-  ingressClassName: cilium
+  ingressClassName: nginx
   rules:
   - host: rancher.buildstar.online
     http:
@@ -261,7 +266,7 @@ spec:
             name: rancher
             port:
               number: 80
-        path: /no
+        path: /
         pathType: Prefix
   tls:
   - hosts:
