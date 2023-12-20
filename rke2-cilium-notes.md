@@ -109,15 +109,6 @@ helm upgrade rke2-cilium cilium/cilium --namespace kube-system --reuse-values \
    --set k8sServicePort=6443 \
    --set operator.replicas=1
 ```
-## Install Ingress-Nginx
-
-```bash
-wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/baremetal/deploy.yaml
-
-sed -i 's/NodePort/LoadBalancer/g' deploy.yaml
-
-kubectl apply -f deploy.yaml
-```
 
 ## Install CertManager
 
@@ -185,6 +176,16 @@ spec:
   cidrs:
   - cidr: "100.64.0.2/30"
 EOF
+```
+
+## Install Ingress-Nginx
+
+```bash
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/baremetal/deploy.yaml
+
+sed -i 's/NodePort/LoadBalancer/g' deploy.yaml
+
+kubectl apply -f deploy.yaml
 ```
 
 ## enable hubble ui
