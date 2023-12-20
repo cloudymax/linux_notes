@@ -195,7 +195,7 @@ metadata:
   name: "main-pool"
 spec:
   cidrs:
-  - cidr: "100.64.0.2/30"
+  - cidr: "10.0.2.18/30"
 EOF
 ```
 
