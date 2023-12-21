@@ -355,6 +355,11 @@ helm install rancher rancher-latest/rancher \
 
 ## Update Rancher Ingress
 
+<details>
+  <summary> Cilium Ingress </summary>
+
+### Cilium Ingress 
+
 ```yaml
 /bin/cat << EOF > rancher-ingress.yaml
 ---
@@ -385,6 +390,7 @@ spec:
     secretName: tls-rancher-ingress
 EOF
 ```
+</details>
 
 ## Install local-path provisioner
 
