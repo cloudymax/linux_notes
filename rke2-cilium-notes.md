@@ -169,9 +169,8 @@ spec:
           ingressClassName: nginx
 EOF
 ```
-<details>
+</details>
   
-Production:
 
 <details>
   <summary> Production Issuer </summary>
@@ -197,7 +196,7 @@ spec:
           ingressClassName: nginx
 EOF
 ```
-<details>
+</details>
 
 ## Create a address adverstisement policy
 
