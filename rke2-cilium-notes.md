@@ -150,7 +150,7 @@ helm install cert-manager jetstack/cert-manager --version v1.13.3 \
 #### Production Issuer 
 
 ```yaml
-/bin/cat << EOF > issuer.yaml
+/bin/cat << EOF > prod-issuer.yaml
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -171,6 +171,8 @@ spec:
           # change to 'cilium' if using a cilium ingress
           ingressClassName: nginx
 EOF
+
+kubectl apply -f prod-issuer.yaml
 ```
 </details>
   
@@ -181,7 +183,7 @@ EOF
 #### Staging Issuer 
 
 ```yaml
-/bin/cat << EOF > issuer.yaml
+/bin/cat << EOF > staging-issuer.yaml
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -201,6 +203,8 @@ spec:
         ingress:
           ingressClassName: nginx
 EOF
+
+kubectl apply -f staging-issuer.yaml
 ```
 </details>
 
@@ -219,6 +223,8 @@ spec:
   externalIPs: true
   loadBalancerIPs: true
 EOF
+
+kubectl apply -f l2-policy.yaml
 ```
 
 ## Create a Loadbalancer IP pool
@@ -234,6 +240,8 @@ spec:
   cidrs:
   - cidr: "10.0.2.18/30"
 EOF
+
+kubectl apply -f ip-pool.yaml
 ```
 
 ## Install Ingress-Nginx
@@ -299,6 +307,8 @@ spec:
             port:
               number: 80
 EOF
+
+kubectl apply -f hubble-ingress.yaml
 ```
 </details>
 
@@ -336,6 +346,8 @@ spec:
             port:
               number: 80
 EOF
+
+kubectl apply -f hubble-ingress.yaml
 ```
 </details>
 
