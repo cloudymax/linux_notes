@@ -131,6 +131,12 @@ kubectl -n kube-system exec -ti ds/cilium -- bash
 root@localhost:/home/cilium# cilium status | grep Encryption
 ```
 
+## Install local-path provisioner
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.26/deploy/local-path-storage.yaml
+```
+
 ## Install CertManager
 
 ```bash
@@ -423,8 +429,3 @@ EOF
 ```
 </details>
 
-## Install local-path provisioner
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.26/deploy/local-path-storage.yaml
-```
