@@ -147,7 +147,7 @@ helm install cert-manager jetstack/cert-manager --version v1.13.3 \
 <details>
   <summary> Staging Issuer </summary>
 
-#### Staging Issuer 
+#### Production Issuer 
 
 ```yaml
 /bin/cat << EOF > issuer.yaml
@@ -178,7 +178,7 @@ EOF
 <details>
   <summary> Production Issuer </summary>
 
-#### Production Issuer 
+#### Staging Issuer 
 
 ```yaml
 /bin/cat << EOF > issuer.yaml
