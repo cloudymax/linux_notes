@@ -359,7 +359,10 @@ kubectl apply -f hubble-ingress.yaml
 
 ## Install Rancher
 
-Make a values file
+Make a values file first.
+
+- You will need to use a production cert or new clusters wont connect to rancher properly.
+- Make sure you have installed the localPath provisioner or some other storage driver.
 
 ```bash
 /bin/cat << EOF > rancher-values.yaml
@@ -371,7 +374,7 @@ ingress:
   enabled: true
   extraAnnotations:
     acme.cert-manager.io/http01-edit-in-place: "true"
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
   tls:
     source: letsEncrypt
 letsEncrypt:
@@ -389,43 +392,3 @@ helm install rancher rancher-latest/rancher \
   --create-namespace \
   -f rancher-values.yaml
 ```
-
-## Update Rancher Ingress
-
-<details>
-  <summary> Cilium Ingress </summary>
-
-### Cilium Ingress 
-
-```yaml
-/bin/cat << EOF > rancher-ingress.yaml
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:
-    acme.cert-manager.io/http01-edit-in-place: "true"
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
-  name: rancher
-  namespace: cattle-system
-spec:
-  ingressClassName: nginx
-  rules:
-  - host: rancher.buildstar.online
-    http:
-      paths:
-      - backend:
-          service:
-            name: rancher
-            port:
-              number: 80
-        path: /
-        pathType: Prefix
-  tls:
-  - hosts:
-    - rancher.buildstar.online
-    secretName: tls-rancher-ingress
-EOF
-```
-</details>
-
