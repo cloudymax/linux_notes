@@ -98,9 +98,9 @@ spec:
       burst: 10
     operator:
       replicas: 1
-    encryption:
-      enabled: true
-      type: wireguard
+    #encryption:
+    #  enabled: true
+    #  type: wireguard
 ```
 
 ## Install RKE2
@@ -144,6 +144,8 @@ helm install cert-manager jetstack/cert-manager --version v1.13.3 \
 
 ## Create a cluster-issuer
 
+Staging:
+
 ```yaml
 /bin/cat << EOF > issuer.yaml
 apiVersion: cert-manager.io/v1
@@ -159,6 +161,30 @@ spec:
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
       name: letsencrypt-prod
+    # Enable the HTTP-01 challenge provider
+    solvers:
+    - http01:
+        ingress:
+          ingressClassName: nginx
+EOF
+```
+
+Production:
+```yaml
+/bin/cat << EOF > issuer.yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-staging-v02.api.letsencrypt.org/
+    # Email address used for ACME registration
+    email: admin@cloudydev.net
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-staging
     # Enable the HTTP-01 challenge provider
     solvers:
     - http01:
