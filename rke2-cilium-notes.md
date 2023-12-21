@@ -384,6 +384,8 @@ letsEncrypt:
 EOF
 ```
 
+Now install Rancher 
+
 ```bash
 helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 
