@@ -378,10 +378,9 @@ EOF
 ```bash
 helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 
-kubectl create namespace cattle-system
-
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
+  --create-namespace \
   -f rancher-values.yaml
 ```
 
