@@ -353,6 +353,28 @@ kubectl apply -f hubble-ingress.yaml
 
 ## Install Rancher
 
+Make a values file
+
+```bash
+/bin/cat << EOF > rancher-values.yaml
+---
+bootstrapPassword: password
+hostname: rancher.buildstar.online
+replicas: -1
+ingress:
+  enabled: true
+  extraAnnotations:
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  tls:
+    source: letsEncrypt
+letsEncrypt:
+  email: admin@cloudydev.net
+  ingress:
+    class: nginx
+EOF
+```
+
 ```bash
 helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 
@@ -360,9 +382,7 @@ kubectl create namespace cattle-system
 
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
-  --set hostname=rancher.buildstar.online \
-  --set replicas=1 \
-  --set bootstrapPassword=password
+  -f rancher-values.yaml
 ```
 
 ## Update Rancher Ingress
