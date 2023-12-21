@@ -145,7 +145,7 @@ helm install cert-manager jetstack/cert-manager --version v1.13.3 \
 ## Create a cluster-issuer
 
 <details>
-  <summary> Staging Issuer </summary>
+  <summary> Production Issuer </summary>
 
 #### Production Issuer 
 
@@ -178,7 +178,7 @@ kubectl apply -f prod-issuer.yaml
   
 
 <details>
-  <summary> Production Issuer </summary>
+  <summary> Staging Issuer </summary>
 
 #### Staging Issuer 
 
