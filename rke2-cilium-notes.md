@@ -144,8 +144,8 @@ helm install cert-manager jetstack/cert-manager --version v1.13.3 \
 
 ## Create a cluster-issuer
 
-Staging:
-
+<details>
+  <summary> Staging Issuer </summary>
 ```yaml
 /bin/cat << EOF > issuer.yaml
 apiVersion: cert-manager.io/v1
@@ -169,8 +169,12 @@ spec:
           ingressClassName: nginx
 EOF
 ```
-
+<details>
+  
 Production:
+
+<details>
+  <summary> Production Issuer </summary>
 ```yaml
 /bin/cat << EOF > issuer.yaml
 apiVersion: cert-manager.io/v1
@@ -193,6 +197,7 @@ spec:
           ingressClassName: nginx
 EOF
 ```
+<details>
 
 ## Create a address adverstisement policy
 
@@ -289,6 +294,7 @@ EOF
 
 Cilium:
 
+```bash
 /bin/cat << EOF > hubble-ingress.yaml
 ---
 apiVersion: networking.k8s.io/v1
@@ -317,6 +323,7 @@ spec:
             port:
               number: 80
 EOF
+```
 
 - After your certificate is ready, change the path in the ingress to just be "/"
 
