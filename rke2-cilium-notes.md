@@ -165,6 +165,7 @@ spec:
     solvers:
     - http01:
         ingress:
+          # change to 'cilium' if using a cilium ingress
           ingressClassName: nginx
 EOF
 ```
@@ -253,6 +254,8 @@ helm upgrade rke2-cilium cilium/cilium \
 - you need to use a nonworking path ie: "/no" at first to get your cert then change it back
 - see https://github.com/cilium/cilium/issues/22340 for explanation
 
+Nginx:
+
 ```bash
 /bin/cat << EOF > hubble-ingress.yaml
 ---
@@ -283,6 +286,37 @@ spec:
               number: 80
 EOF
 ```
+
+Cilium:
+
+/bin/cat << EOF > hubble-ingress.yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hubble-ingress
+  namespace: kube-system
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  tls:
+  - hosts:
+    - hubble.buildstar.online
+    secretName: "hubble-tls"
+  ingressClassName: cilium
+  rules:
+  - host: hubble.buildstar.online
+    http:
+      paths:
+      - path: /no
+        pathType: Prefix
+        backend:
+          service:
+            name: hubble-ui
+            port:
+              number: 80
+EOF
 
 - After your certificate is ready, change the path in the ingress to just be "/"
 
