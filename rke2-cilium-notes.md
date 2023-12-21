@@ -405,6 +405,7 @@ helm install rancher rancher-latest/rancher \
 ## Install the RancherCLI
 
 Releases: https://github.com/rancher/cli/releases
+Docs: https://ranchermanager.docs.rancher.com/reference-guides/cli-with-rancher/rancher-cli
 
 Install:
 
