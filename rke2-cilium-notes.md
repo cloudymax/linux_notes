@@ -98,9 +98,9 @@ spec:
       burst: 10
     operator:
       replicas: 1
-    #encryption:
-    #  enabled: true
-    #  type: wireguard
+    encryption:
+      enabled: true
+      type: wireguard
 ```
 
 ## Install RKE2
