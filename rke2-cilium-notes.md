@@ -142,10 +142,13 @@ helm install cert-manager jetstack/cert-manager --version v1.13.3 \
     --create-namespace
 ```
 
-## Create a cluster-issuer
+### Create a cluster-issuer
 
 <details>
   <summary> Staging Issuer </summary>
+
+#### Staging Issuer 
+
 ```yaml
 /bin/cat << EOF > issuer.yaml
 apiVersion: cert-manager.io/v1
@@ -174,6 +177,9 @@ EOF
 
 <details>
   <summary> Production Issuer </summary>
+
+#### Production Issuer 
+
 ```yaml
 /bin/cat << EOF > issuer.yaml
 apiVersion: cert-manager.io/v1
@@ -254,11 +260,15 @@ helm upgrade rke2-cilium cilium/cilium \
 
 ## Create an ingress for hubble
 
-- you need to add the annotation:
-- you need to use a nonworking path ie: "/no" at first to get your cert then change it back
+- You need to add the annotation: `acme.cert-manager.io/http01-edit-in-place: "true"`
+- You need to use a nonworking path ie: "/no" at first
+- After your certificate is ready, change the path in the ingress to just be "/"
 - see https://github.com/cilium/cilium/issues/22340 for explanation
 
-Nginx:
+<details>
+  <summary> Ingress-Nginx </summary>
+
+### Ingress-Nginx
 
 ```bash
 /bin/cat << EOF > hubble-ingress.yaml
@@ -290,8 +300,12 @@ spec:
               number: 80
 EOF
 ```
+</details>
 
-Cilium:
+<details>
+  <summary> Cilium Ingress </summary>
+
+### Cilium Ingress 
 
 ```bash
 /bin/cat << EOF > hubble-ingress.yaml
@@ -323,8 +337,7 @@ spec:
               number: 80
 EOF
 ```
-
-- After your certificate is ready, change the path in the ingress to just be "/"
+</details>
 
 ## Install Rancher
 
