@@ -142,7 +142,7 @@ helm install cert-manager jetstack/cert-manager --version v1.13.3 \
     --create-namespace
 ```
 
-### Create a cluster-issuer
+## Create a cluster-issuer
 
 <details>
   <summary> Staging Issuer </summary>
