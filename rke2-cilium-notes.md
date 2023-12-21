@@ -394,3 +394,26 @@ helm install rancher rancher-latest/rancher \
   --create-namespace \
   -f rancher-values.yaml
 ```
+
+## Get an API Key
+
+- Log in to web UI
+- Click user icon in top right corner
+- Click on 'Account and API Keys'
+- Create a new API Key
+  
+## Install the RancherCLI
+
+Releases: https://github.com/rancher/cli/releases
+
+Install:
+
+```bash
+wget https://github.com/rancher/cli/releases/download/v2.8.0/rancher-linux-amd64-v2.8.0.tar.gz
+tar xvf rancher-linux-amd64-v2.8.0.tar.gz
+sudo mv rancher-v2.8.0/rancher /usr/bin/
+
+rancher --version
+$ rancher login https://rancher.buildstar.online -t <my-secret-token>
+```
+
