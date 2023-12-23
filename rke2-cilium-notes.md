@@ -95,7 +95,7 @@ secrets-encryption: true
 ## Create a Cilium config file
 
 ```bash
-sudo mkdir -p /var/lib/rancher/rke2/server/manifests/r
+sudo mkdir -p /var/lib/rancher/rke2/server/manifests/
 sudo nano /var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml
 ```
 
