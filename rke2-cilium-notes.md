@@ -36,6 +36,11 @@ Cilium currently requires working around bugs related to tls-certificate request
   2. The LoadBalancer created for an Ingress does not recieve traffic from HAproxy properly which limits some usecases.
   3. LB-IPAM address pools cannot properly allocate a single, or non-continuous set of addresses. The pool only allows CIDR notation but ignores the first and last IP in the CIDR. Meaning taht one must use a /30 at minimum. In-practice this results in frequent misallocations. 
 
+## Create a Cluster
+
+<details>
+  <summary> RKE2 </summary>
+  
 ## Create a RKE2 config file
 
 ```bash
@@ -64,6 +69,28 @@ node-external-ip: 100.64.0.2
 # Required for l2 IP Announcement
 disable-kube-proxy: true
 ```
+
+</details>
+
+<details>
+  <summary> K3s </summary>
+
+## Create a K3s config file
+
+```bash
+sudo mkdir -p /etc/rancher/k3s/
+sudo nano /etc/rancher/k3s/config.yaml
+```
+
+```yaml
+---
+write-kubeconfig-mode: "0600"
+node-label: []
+disable:
+  - traefik
+secrets-encryption: true
+```
+</details>
 
 ## Create a Cilium config file
 
