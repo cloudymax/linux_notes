@@ -134,7 +134,7 @@ encryption:
 ```bash
 helm repo add cilium https://helm.cilium.io/
 
-helm install cilium cilium/cilium -f cilium-values.yaml
+helm install cilium cilium/cilium -f cilium-values.yaml -n kube-system
 ```
 
 </details>
