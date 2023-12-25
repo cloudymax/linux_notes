@@ -97,6 +97,44 @@ disable-kube-proxy: true
 
 ## Create a Cilium config file
 
+<details>
+  <summary> K3s </summary>
+
+## Create a Cilium helm values file
+
+```bash
+nano cilium-values.yaml
+```
+
+```bash
+k8sServiceHost: 168.119.173.228
+k8sServicePort: 6443
+kubeProxyReplacement: true
+l2announcements:
+  enabled: true
+l7Proxy: true
+ingressController:
+  enabled: false
+  loadbalancerMode: shared
+externalIPs:
+  enabled: true
+devices: eth0
+k8sClientRateLimit:
+  qps: 5
+  burst: 10
+operator:
+  replicas: 1
+encryption:
+  enabled: true
+  type: wireguard
+```
+</details>
+
+<details>
+  <summary> RKE2 </summary>
+
+## Creaete a RKE2 Helm config file
+
 ```bash
 sudo mkdir -p /var/lib/rancher/rke2/server/manifests/
 sudo nano /var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml
@@ -132,6 +170,7 @@ spec:
       enabled: true
       type: wireguard
 ```
+</details>
 
 ## Install RKE2
 
