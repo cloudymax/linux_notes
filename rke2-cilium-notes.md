@@ -88,7 +88,10 @@ write-kubeconfig-mode: "0600"
 node-label: []
 disable:
   - traefik
+  - servicelb
+  - metrics-server
 secrets-encryption: true
+disable-kube-proxy: true
 ```
 </details>
 
