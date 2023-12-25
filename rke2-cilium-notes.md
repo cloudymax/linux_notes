@@ -92,6 +92,8 @@ disable:
   - metrics-server
 secrets-encryption: true
 disable-kube-proxy: true
+flannel-backend: none
+disable-network-policy: true
 ```
 </details>
 
@@ -128,6 +130,13 @@ encryption:
   enabled: true
   type: wireguard
 ```
+
+```bash
+helm repo add cilium https://helm.cilium.io/
+
+helm install cilium cilium/cilium -f cilium-values.yaml
+```
+
 </details>
 
 <details>
@@ -171,6 +180,25 @@ spec:
       type: wireguard
 ```
 </details>
+
+
+## Install K3s
+
+```bash
+curl -sfL https://get.k3s.io | sh -
+```
+
+## Make Kubceconfig usable
+
+```bash
+mkdir -p ~/.config/kube
+
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.config/kube/config
+
+sudo chown $USER:$USER ~/.config/kube/config
+
+export KUBECONFIG=~/.config/kube/config
+```
 
 ## Install RKE2
 
