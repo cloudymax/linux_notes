@@ -1,0 +1,14 @@
+# /home/friend/.cache/smol-k8s-lab/k3s.yml
+# if you enable MetalLB, we automatically add servicelb to the disable list
+# enables encryption at rest for Kubernetes secrets
+secrets-encryption: true
+node-external-ip: 100.64.0.1
+# disables traefik so we can enable ingress-nginx, remove if you're using traefik
+disable:
+- traefik
+- servicelb
+node-label:
+- ingress-ready=true
+kubelet-arg:
+- max_pods=150
+- node-ip=192.168.50.100
