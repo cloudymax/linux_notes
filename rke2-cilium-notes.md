@@ -492,6 +492,45 @@ helm install rancher rancher-latest/rancher \
   -f rancher-values.yaml
 ```
 
+Edit the rancher Ingress
+
+```yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rancher-ingress
+  namespace: cattle-system
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Optional vouch proxy settings
+    #nginx.ingress.kubernetes.io/auth-signin: "https://vouch.buildstar.online/login?url=$scheme://$http_host$request_uri&vouch-failcount=$auth_resp_failcount&X-Vouch-Token=$auth_resp_jwt&error=$auth_resp_err"
+    #nginx.ingress.kubernetes.io/auth-url: https://vouch.buildstar.online/validate
+    #nginx.ingress.kubernetes.io/auth-response-headers: X-Vouch-User
+    #nginx.ingress.kubernetes.io/auth-snippet: |
+      #auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
+      #auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
+      #auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
+spec:
+  tls:
+    - hosts:
+      - rancher.buildstar.online
+      secretName: rancher-tls
+  ingressClassName: nginx
+  rules:
+  - host: rancher.buildstar.online
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rancher
+            port:
+              number: 80
+```
+
 ## Get an API Key
 
 - Log in to web UI
