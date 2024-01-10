@@ -499,7 +499,7 @@ Edit the rancher Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: rancher-ingress
+  name: rancher
   namespace: cattle-system
   annotations:
     kubernetes.io/ingress.class: nginx
