@@ -41,11 +41,11 @@ smol_k8s_lab:
     # path of file to log to if console logging is NOT desired
     file: ''
     # logging level, Options: debug, info, warn, error
-    level: info
+    level: debug
 
   # store your password and tokens directly in your local password manager
   local_password_manager:
-    enabled: false
+    enabled: true
     # enable the use of Bitwarden as your password manager.
     # To use Bitwarden, you must export the following environment variables:
     # BW_PASSWORD, BW_CLIENTID, BW_CLIENTSECRET, BW_SESSION
@@ -57,7 +57,7 @@ smol_k8s_lab:
     # edit: edit item, if there's one item found, ask if multiple found
     # duplicate: create an additional item with the same name
     # no_action: don't do anything, just continue on with the script
-    duplicate_strategy: ask
+    duplicate_strategy: edit
 
 # which distros of Kubernetes to deploy. Options: kind, k3s, k3d
 # NOTE: only kind and k3d are available on macOS at this time
@@ -67,18 +67,24 @@ k8s_distros:
     enabled: true
     # if k8s_distro set to k3s/k3d, you can add an array of extra arguments to pass
     # to the k3s install script as a k3s.yaml file. If you enable cilium, we
-    # automatically pass in flannel-backend: none and disable-network-policy: true
+    # automatically pass in flannel-backend: none and disable-network-policy: true 
     k3s_yaml:
       # if you enable MetalLB, we automatically add servicelb to the disable list
       # enables encryption at rest for Kubernetes secrets
       secrets-encryption: true
+      node-external-ip: 100.64.0.1
       # disables traefik so we can enable ingress-nginx, remove if you're using traefik
       disable:
       - traefik
+      - servicelb
       node-label:
       - ingress-ready=true
       kubelet-arg:
       - max_pods=150
+      - node-ip=192.168.50.100
+      - cpu-manager-policy=static
+      - kube-reserved=cpu=1,memory=2Gi,ephemeral-storage=1Gi
+      - system-reserved=cpu=1,memory=2Gi,ephemeral-storage=1Gi
     nodes:
       control_plane: 1
       workers: 0
@@ -88,7 +94,7 @@ k8s_distros:
     enabled: false
     # if k8s_distro set to k3s/k3d, you can add an array of extra arguments to pass
     # to the k3s install script as a k3s.yaml file. if you enable cilium, we
-    # automatically pass in flannel-backend: none and disable-network-policy: true
+    # automatically pass in flannel-backend: none and disable-network-policy: true 
     k3s_yaml:
       # if you enable MetalLB, we automatically add servicelb to the disable list
       # enables encryption at rest for Kubernetes secrets
@@ -128,7 +134,7 @@ k8s_distros:
 apps_global_config:
   # setting this changes all the below domains to use the following cluster_issuer
   # change to letsencrypt-prod when you're ready to go live with your infra
-  cluster_issuer: letsencrypt-staging
+  cluster_issuer: letsencrypt-prod
   # change to your tz: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List
   time_zone: Europe/Amsterdam
   # always deploy external secrets. *Must be a string of "" (don't use external secrets) or "bitwarden" to use bitwarden for external secrets*
@@ -140,7 +146,7 @@ apps_global_config:
 apps:
   argo_cd:
     # Set to false if you you just want a bare cluster with only the above apps"
-    enabled: false
+    enabled: true
     description: |
       [link=https://argo-cd.readthedocs.io/en/stable/]Argo CD[/link] is a declarative, GitOps continuous delivery tool for Kubernetes.
 
@@ -155,9 +161,9 @@ apps:
       # secrets keys to make available to Argo CD ApplicationSets
       secret_keys:
         # FQDN hostname for accessing the Argo CD web interface
-        hostname: ''
+        hostname: argocd.buildstar.online
         # which oidc provider to use for Argo CD: defaults to Zitadel
-        oidc_provider: zitadel
+        oidc_provider: Zitadel
       # git repo to install the Argo CD app from
       repo: https://github.com/small-hack/argocd-apps
       # path in the argo repo to point to. Trailing slash very important!
@@ -217,7 +223,7 @@ apps:
           namespaces:
           - kube-system
   cilium:
-    enabled: true
+    enabled: false
     description: |
       [link=https://cilium.io/]Cilium[/link] is an open source, cloud native solution for providing, securing, and observing network connectivity between workloads, fueled by the revolutionary Kernel technology eBPF.
     # Initialize of the app through smol-k8s-lab
@@ -249,7 +255,7 @@ apps:
       CloudNative PostgeSQL Operator for Kubernetes. This lets you create an
       manage many clusters of postgresql, including backups to s3.
     # default disabled while a helm chart is being actively developed
-    enabled: false
+    enabled: true
     argo:
       # secret keys to provide for the argocd secret plugin app, none by default
       secret_keys: {}
@@ -273,7 +279,7 @@ apps:
           namespaces: []
 
   external_secrets_operator:
-    enabled: false
+    enabled: true
     description: |
       [link=https://external-secrets.io/latest/]External Secrets Operator[/link] is a Kubernetes operator that integrates external secret management systems like HashiCorp Vault, CyberArk Conjur, Bitwarden, Gitlab, and many more. The operator reads information from external APIs and automatically injects the values into a Kubernetes Secret.
 
@@ -349,7 +355,7 @@ apps:
   # This app is installed with helm or manifests depending on what is recommended
   # for your k8s distro. Becomes managed by Argo CD if you enable it below
   ingress_nginx:
-    enabled: false
+    enabled: true
     description: |
       Dedefault deploys [link=https://github.com/kubernetes/ingress-nginx]ingress-nginx[/link] and cert-manager as one argocd app of apps and project in the same namespace
       Ingress-nginx cannot be disabled unless you provide your own ingress controller app
@@ -378,6 +384,38 @@ apps:
           # automatically includes the app's namespace and argocd's namespace
           namespaces: []
 
+  juicefs:
+    enabled: false
+    description: |
+      A High-Performance, Cloud-Native, Distributed File System: Elastic, Multi-Cloud, Compatible with POSIX, HDFS, and S3 Protocols.
+    argo:
+      # git repo to install the Argo CD app from
+      repo: https://github.com/small-hack/argocd-apps
+      # path in the argo repo to point to. Trailing slash very important!
+      # change to "ingress/ingress-nginx/" to not use app of apps
+      path: demo/juicefs/app_of_apps/
+      # either the branch or tag to point at in the argo repo above
+      revision: main
+      # namespace to install the k8s app in
+      namespace: juicefs
+      # recurse directories in the provided git repo
+      directory_recursion: false
+      # secret keys to provide for the Argo CD Appset secret plugin, none by default
+      secret_keys:
+        redis_password: ghsdfjhgafdkfghkashjdgfkhasd
+        s3_key_id: H4JjpTlhcTnFbd3f
+        s3_secret_key: tny5XD7omtGBlIXLOy8e5rhJ1CeDJZ8e
+        s3_hostname: s3.buildstar.online
+      # source repos for Argo CD App Project (in addition to argo.repo)
+      project:
+        source_repos:
+        - https://github.com/small-hack/argocd-apps.git
+        - https://juicedata.github.io/charts/
+        - https://seaweedfs.github.io/seaweedfs/helm
+        - registry-1.docker.io
+        destination:
+          # automatically includes the app's namespace and argocd's namespace
+          namespaces: []
   k8tz:
     enabled: false
     description: |
@@ -407,7 +445,7 @@ apps:
           namespaces: []
 
   k8up:
-    enabled: false
+    enabled: true
     description: |
       [link=https://k8up.io]K8up[/link] ([i]pronounced "ketchup?"[/]) is a Kubernetes Operator based on Restic for backups of Persistent Volumes in k8s into S3 compatible storage like MinIO. Backs up all PVCs marked as ReadWriteMany, ReadWriteOnce or with a specific label. Can also perform "Application Aware" backups, containing the output of any tool capable of writing to stdout. You can also perform individual, on-demand backups, and restores from the k8up CLI tool.
 
@@ -468,7 +506,7 @@ apps:
       [link=https://kubevirt.io/]kubevirt[/link] lets you manage virtual machines via Kubernetes.
 
     # default disabled while a helm chart is being actively developed
-    enabled: false
+    enabled: true
     argo:
       # secret keys to provide for the argocd secret plugin app, none by default
       secret_keys: {}
@@ -486,6 +524,8 @@ apps:
       project:
         source_repos:
         - https://github.com/small-hack/argocd-apps
+        - https://github.com/cloudymax/kubevirt-community-stack
+        - https://cloudymax.github.io/kubevirt-community-stack/
         destination:
           # automatically includes the app's namespace and argocd's namespace
           namespaces: []
@@ -551,7 +591,7 @@ apps:
         admin_user: tootadmin
         # hostname that users go to in the browser
         hostname: ''
-        # set the local s3 provider for mastodon's public data in one bucket
+        # set the local s3 provider for mastodon's public data in one bucket 
         # and private database backups in another. can be minio or seaweedfs
         s3_provider: seaweedfs
         # how large the backing pvc's capacity should be for minio or seaweedfs
@@ -593,7 +633,7 @@ apps:
       This deploys a matrix synapse server, element (web frontend), and turn server (voice)
 
       smol-k8s-lab supports initialization by creating initial secrets for your:
-        - matrix, element, and federation hostnames,
+        - matrix, element, and federation hostnames, 
         - credentials for: postgresql, admin user, S3 storage, and SMTP
 
       smol-k8s-lab also sets up an OIDC application via Zitadel.
@@ -664,7 +704,7 @@ apps:
   # This app is installed with helm or manifests depending on what is recommended
   # for your k8s distro. Becomes managed by Argo CD if you enable it below
   metallb:
-    enabled: false
+    enabled: true
     description: |
       [link=https://metallb.org/]MetalLB[/link] Helps expose IP addresses for loadbalancers on metal if you're on a vm or container where you can't get an IP.
 
@@ -676,7 +716,10 @@ apps:
     init:
       enabled: true
       values:
-        address_pool: []
+        address_pool:
+        - 192.168.50.101/32
+        - 192.168.50.102/32
+        - 192.168.50.103/32
     argo:
       # secret keys to provide for the argocd secret plugin app, none by default
       secret_keys: {}
@@ -839,18 +882,18 @@ apps:
 
       smol-k8s-lab supports initialization by setting up your ingress hostnames.
 
-    enabled: false
+    enabled: true
     argo:
       # secrets keys to make available to Argo CD ApplicationSets
       secret_keys:
         # FQDN to use for Prometheus web interface
-        hostname: ''
+        hostname: prometheus.buildstar.online
         # FQDN to use for grafana
-        grafana_hostname: ''
+        grafana_hostname: grafana.buildstar.online
         # FQDN to use for Alert Manager web interface
-        alert_manager_hostname: ''
+        alert_manager_hostname: alert.buildstar.online
         # FQDN to use for the prometheus push gateway
-        push_gateway_hostname: ''
+        push_gateway_hostname: pushgateway.buildstar.online
       # git repo to install the Argo CD app from
       repo: https://github.com/small-hack/argocd-apps
       # path in the argo repo to point to. Trailing slash very important! This
@@ -858,7 +901,7 @@ apps:
       # only install kube-prometheus-stack (foregoing loki and push gateway)
       path: prometheus/
       # either the branch or tag to point at in the argo repo above
-      revision: main
+      revision: scrape-targets-enabled
       # namespace to install the k8s app in
       namespace: prometheus
       # recurse directories in the provided git repo
@@ -873,6 +916,35 @@ apps:
           # automatically includes the app's namespace and argocd's namespace
           namespaces:
           - kube-system
+  rancher:
+    description: |
+      [link=https://www.rancher.com/]Rancher[/link] multi-cluster management tool
+
+    # default disabled while a helm chart is being actively developed
+    enabled: false
+    argo:
+      # secret keys to provide for the argocd secret plugin app, none by default
+      secret_keys: {}
+      # git repo to install the Argo CD app from
+      repo: https://github.com/small-hack/argocd-apps
+      # path in the argo repo to point to. Trailing slash very important!
+      path: demo/rancher/
+      # either the branch or tag to point at in the argo repo above
+      revision: main
+      # namespace to install the k8s app in
+      namespace: cattle-system
+      # recurse directories in the provided git repo
+      directory_recursion: false
+      # source repos for Argo CD App Project (in addition to argo.repo)
+      project:
+        source_repos:
+        - https://github.com/small-hack/argocd-apps
+        - https://releases.rancher.com/server-charts/latest
+        destination:
+          # automatically includes the app's namespace and argocd's namespace
+          namespaces: []
+
+
 
   seaweedfs:
     enabled: false
@@ -889,8 +961,8 @@ apps:
     argo:
       # secrets keys to make available to Argo CD ApplicationSets
       secret_keys:
-        hostname: ''
-        s3_endpoint: ''
+        hostname: s3.buildstar.online
+        s3_endpoint: s3.us-west-004.backblazeb2.com
         s3_region: eu-west-1
       # git repo to install the Argo CD app from
       repo: https://github.com/small-hack/argocd-apps
@@ -978,22 +1050,22 @@ apps:
       [link=https://github.com/vouch/vouch-proxy]vouch-proxy[/link] can help you forward requests for OIDC authentication to any ingress source that doesn't already have it. Super useful for web pages like prometheus's UI.
 
       smol-k8s-lab supports the initialization of vouch if you also enable zitadel by creating OIDC applications and credentials and your vouch-proxy Kubernetes Secret.
-    enabled: false
+    enabled: true
     # Initialization of the app through smol-k8s-lab using bitwarden and/or k8s secrets
     init:
       enabled: true
       values:
         # list of domains allowed to be behind vouch such as example.com
-        domains: []
-        # - example.com
-        # email addresses allowed to authenticate via vouch
-        emails: []
-        # - beep@boop.com
+        domains:
+        - cloudydev.net
+        - buildstar.online
+        emails:
+        - emax@cloudydev.net
     argo:
       # secrets keys to make available to Argo CD ApplicationSets
       secret_keys:
         # FQDN to use for vouch
-        hostname: ''
+        hostname: vouch.buildstar.online
       # repo to install the Argo CD app from
       # git repo to install the Argo CD app from
       repo: https://github.com/small-hack/argocd-apps
@@ -1014,7 +1086,7 @@ apps:
           namespaces: []
 
   zitadel:
-    enabled: false
+    enabled: true
     description: |
       [link=https://zitadel.com/opensource]ZITADEL[/link] is an open source self hosted IAM platform for the cloud era
 
@@ -1039,13 +1111,13 @@ apps:
       enabled: true
       values:
         # initial human user's usename
-        username: ''
+        username: cloudymax
         # initial human user's email
-        email: ''
+        email: emax@cloudydev.net
         # initial human's first name
-        first_name: ''
+        first_name: Max
         # initial human's last name
-        last_name: ''
+        last_name: Roby
         # options: GENDER_UNSPECIFIED, GENDER_MALE, GENDER_FEMALE, GENDER_DIVERSE
         # more coming soon, see: https://github.com/zitadel/zitadel/issues/6355
         gender: GENDER_UNSPECIFIED
@@ -1062,18 +1134,18 @@ apps:
       # secrets keys to make available to Argo CD ApplicationSets
       secret_keys:
         # FQDN to use for zitadel
-        hostname: ''
+        hostname: zitadel.buildstar.online
         # set the local s3 provider for zitadel's database backups. can be minio or seaweedfs
         s3_provider: seaweedfs
         # local s3 endpoint for postgresql backups, backed up constantly
-        s3_endpoint: ''
+        s3_endpoint: zitadel-s3.buildstar.online
         # capacity for the PVC backing your local s3 instance
         s3_pvc_capacity: 2Gi
         # Remote S3 configuration, for pushing remote backups of your local postgresql backups
         # these are done only nightly right now, for speed and cost optimization
-        s3_backup_endpoint: ''
-        s3_backup_region: ''
-        s3_backup_bucket: ''
+        s3_backup_endpoint: zitadel-s3.buildstar.online
+        s3_backup_region: eu-west-1
+        s3_backup_bucket: zitadel-backups
       # repo to install the Argo CD app from
       # git repo to install the Argo CD app from
       repo: https://github.com/small-hack/argocd-apps
