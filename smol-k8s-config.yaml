@@ -509,7 +509,8 @@ apps:
     enabled: true
     argo:
       # secret keys to provide for the argocd secret plugin app, none by default
-      secret_keys: {}
+      secret_keys:
+        webui_hostname: kubevirt.buildstar.online
       # git repo to install the Argo CD app from
       repo: https://github.com/small-hack/argocd-apps
       # path in the argo repo to point to. Trailing slash very important!
@@ -528,7 +529,11 @@ apps:
         - https://cloudymax.github.io/kubevirt-community-stack/
         destination:
           # automatically includes the app's namespace and argocd's namespace
-          namespaces: []
+          namespaces:
+          - kubevirt-manager
+          - default
+          - windows10
+          - debian12
 
   kyverno:
     description: |
@@ -545,6 +550,30 @@ apps:
       revision: main
       # namespace to install the k8s app in
       namespace: kyvero
+      # recurse directories in the provided git repo
+      directory_recursion: false
+      # source repos for Argo CD App Project (in addition to argo.repo)
+      project:
+        source_repos: []
+        destination:
+          # automatically includes the app's namespace and argocd's namespace
+          namespaces: []
+
+  localpath_provisioner:
+    description: |
+      [link=https://github.com/rancher/local-path-provisioner]Local-Path Provisioner[/link] provides a way for the Kubernetes users to utilize the local storage in each node.
+    enabled: false
+    argo:
+      # secret keys to provide for the argocd secret plugin app, none by default
+      secret_keys: {}
+      # git repo to install the Argo CD app from
+      repo: https://github.com/small-hack/argocd-apps
+      # path in the argo repo to point to. Trailing slash very important!
+      path: demo/local-path-provisioner/
+      # either the branch or tag to point at in the argo repo above
+      revision: main
+      # namespace to install the k8s app in
+      namespace: kube-system
       # recurse directories in the provided git repo
       directory_recursion: false
       # source repos for Argo CD App Project (in addition to argo.repo)
@@ -1153,7 +1182,7 @@ apps:
       # if you want to use cockroachdb, change to zitadel/zitadel_and_cockroachdb
       path: zitadel/app_of_apps/
       # either the branch or tag to point at in the argo repo above
-      revision: main
+      revision: pod-monitor-enabled
       # namespace to install the k8s app in
       namespace: zitadel
       # recurse directories in the provided git repo
