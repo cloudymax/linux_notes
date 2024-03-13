@@ -1,0 +1,12 @@
+#cloud-config
+groups:
+  - docker
+users:
+  - default
+  - name: friend
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    groups: docker, admin, sudo, users
+    no_ssh_fingerprints: true
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7UOtcyJynv33reRMYgEhcSLioiRCXF5mGTBPKIt6b47nqtcMMqEBdpNOdGs1jnN3pKZXUBMi3H40v9+gqhk2WKyIEsv/za83euHN+qgOvTggn5R3f6yu9R52qx/MlZmYjxSMBRrID0SIvxbLmMsruF5WHKDTTeWwuD3ddaZp2I9lT7r9p+nfK0tUuV+doH42A9jOMCnUvm2lsMcW97dBiUnwkKHiFYMxxMrYX7DUP3O+Jdz6OVl49i+nTbzKMfOmBR8h8y3u9ymmK3VxX7qP1R/R480GLQj27VFqz2irolD2AAxMa705pqwOmmzL/HT+ge2EXHlJN89tNWfk1FfTZl6755lQiJuitY9WmADR8yDvjQV+Gd1oszHIFdIO/oiB6vDoWHJx/30kGfXKc1pibb8VfFDEjs8NHDbH31KKs49mmyCkzbqq9oA73XBsXHibARpx9j6TbG0S443K3/Q9MaBRfRprx/kT5D2sZC9tV/mXhW6bgF5e5iAn2pTfvhtc= max.roby@MAC-MROBY
