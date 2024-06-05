@@ -1,0 +1,161 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vgpu
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: vgpu-db-pvc
+  namespace: vgpu
+  annotations:
+spec:
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: license-server
+  namespace: vgpu
+spec:
+  selector:
+    matchLabels:
+      app: license-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: license-server
+    spec:
+      containers:
+      - name: license-server
+        image: collinwebdesigns/fastapi-dls
+        ports:
+        - name: https
+          containerPort: 443
+        env:
+        - name: TZ
+          value: "Europe/Amsterdam"
+        - name: DLS_URL
+          value: "localhost"
+        - name: DLS_PORT
+          value: "443"
+        - name: LEASE_EXPIRE_DAYS
+          value: "90"
+        - name: DATABASE
+          value: "sqlite:////app/database/db.sqlite"
+        - name: DEBUG
+          value: "false"
+        volumeMounts:
+          - name: dls-db
+            mountPath: /app/database
+          - name: certs
+            mountPath: /app/cert
+          - name: secret-volume-app
+            mountPath: /etc/secrets/app
+      volumes:
+      - name: dls-db
+        persistentVolumeClaim:
+          claimName: vgpu-db-pvc
+      - name: certs
+        secret:
+          secretName: vgpu-client-cert
+          defaultMode: 0600
+      - name: secret-volume-app
+        secret:
+          secretName: vgpu-client-cert
+          defaultMode: 0600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: license-server-service
+  namespace: vgpu
+spec:
+  selector:
+    app: license-server
+  ports:
+    - name: http
+      protocol: TCP
+      port: 443
+      targetPort: 443
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: license-server-ingress
+  namespace: vgpu
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+      - vgpu.buildstars.online
+      secretName: "vgpu-tls"
+  rules:
+  - host: vgpu.buildstars.online
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: license-server-service
+            port:
+              number: 443
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vgpu-client-ca
+  namespace: vgpu
+spec:
+  isCA: true
+  commonName: vgpu-selfsigned-client-ca
+  secretName: vgpu-client-ca-key-pair
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: vgpu-selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: vgpu-client-ca-issuer
+  namespace: vgpu
+spec:
+  ca:
+    secretName: vgpu-client-ca-key-pair
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vgpu-client-cert
+  namespace: vgpu
+  labels:
+    cnpg.io/reload: ""
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vgpu-client-cert
+  namespace: vgpu
+spec:
+  secretName: vgpu-client-cert
+  usages:
+    - client auth
+  commonName: client
+  issuerRef:
+    name: vgpu-client-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
