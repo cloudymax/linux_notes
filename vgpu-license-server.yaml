@@ -50,26 +50,50 @@ spec:
         - name: DATABASE
           value: "sqlite:////app/database/db.sqlite"
         - name: DEBUG
-          value: "false"
+          value: "true"
         volumeMounts:
           - name: dls-db
             mountPath: /app/database
-          - name: certs
-            mountPath: /app/cert
-          - name: secret-volume-app
-            mountPath: /etc/secrets/app
+          - name: privkey
+            mountPath: /app/cert/instance.private.pem
+            subPath: instance.private.pem
+          - name: pubkey
+            mountPath: /app/cert/instance.public.pem
+            subPath: instance.public.pem
+          - name: webcrt
+            mountPath: /app/cert/webserver.crt
+            subPath: webserver.crt
+          - name: webkey
+            mountPath: /app/cert/webserver.key
+            subPath: webserver.key
       volumes:
       - name: dls-db
         persistentVolumeClaim:
           claimName: vgpu-db-pvc
-      - name: certs
-        secret:
-          secretName: vgpu-client-cert
-          defaultMode: 0600
-      - name: secret-volume-app
-        secret:
-          secretName: vgpu-client-cert
-          defaultMode: 0600
+      - name: privkey
+        configMap:
+          name: privkey
+          items:
+            - key: instance.private.pem
+              path: instance.private.pem
+      - name: pubkey
+        configMap:
+          name: pubkey
+          items:
+            - key: instance.public.pem
+              path: instance.public.pem
+      - name: webkey
+        configMap:
+          name: webkey
+          items:
+            - key: webserver.key
+              path: webserver.key
+      - name: webcrt
+        configMap:
+          name: webcrt
+          items:
+            - key: webserver.crt
+              path: webserver.crt
 ---
 apiVersion: v1
 kind: Service
@@ -80,9 +104,9 @@ spec:
   selector:
     app: license-server
   ports:
-    - name: http
+    - name: https
       protocol: TCP
-      port: 443
+      port: 8080
       targetPort: 443
   type: ClusterIP
 ---
@@ -109,53 +133,122 @@ spec:
           service:
             name: license-server-service
             port:
-              number: 443
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: vgpu-client-ca
-  namespace: vgpu
-spec:
-  isCA: true
-  commonName: vgpu-selfsigned-client-ca
-  secretName: vgpu-client-ca-key-pair
-  privateKey:
-    algorithm: ECDSA
-    size: 256
-  issuerRef:
-    name: vgpu-selfsigned-issuer
-    kind: Issuer
-    group: cert-manager.io
----
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: vgpu-client-ca-issuer
-  namespace: vgpu
-spec:
-  ca:
-    secretName: vgpu-client-ca-key-pair
+              number: 8080
 ---
 apiVersion: v1
-kind: Secret
+data:
+  instance.public.pem: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4JJN0TX7ixoyP9TfDbz2
+    iwnSGu2NieNkXoHUMvRNFO8oe4elOMDVqtdG33ROPhBAGeufZat2NzrnT2z4zqli
+    GxU5mHLScDftr038S8+AoA6IFdOPRa52aNUU7ZLbhyEgKlwLvFq2XNeIfCF6kzUK
+    3AHvsKmDFIi4RfvC81Fh5CIA1XAQpUzXQ8GrRqs/IsePOZH3rUeC/OXvZQWQjT3t
+    tW1KRycCbbtAxOdAmAPemb4SI1M+NNj6fu33eg5rZKJazolgbIu1Wq2TjMYmsAry
+    jyYi+mJbd6YYDHsFKAj/6jrT0gmPVNLRupu8/zo8qWkt+2SE27lgl3Cry9+2PJJS
+    pQIDAQAB
+    -----END PUBLIC KEY-----
+kind: ConfigMap
 metadata:
-  name: vgpu-client-cert
+  name: pubkey
   namespace: vgpu
-  labels:
-    cnpg.io/reload: ""
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
+apiVersion: v1
+data:
+  instance.private.pem: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDgkk3RNfuLGjI/
+    1N8NvPaLCdIa7Y2J42RegdQy9E0U7yh7h6U4wNWq10bfdE4+EEAZ659lq3Y3OudP
+    bPjOqWIbFTmYctJwN+2vTfxLz4CgDogV049FrnZo1RTtktuHISAqXAu8WrZc14h8
+    IXqTNQrcAe+wqYMUiLhF+8LzUWHkIgDVcBClTNdDwatGqz8ix485kfetR4L85e9l
+    BZCNPe21bUpHJwJtu0DE50CYA96ZvhIjUz402Pp+7fd6DmtkolrOiWBsi7VarZOM
+    xiawCvKPJiL6Ylt3phgMewUoCP/qOtPSCY9U0tG6m7z/OjypaS37ZITbuWCXcKvL
+    37Y8klKlAgMBAAECggEAAUjiUD9UZPoSzgSC0dJiKwRKHanSEgxz40ovriqcHfHK
+    o+ma03LfoLZ9EGOwW+YIu9fk0EvVZWD9TZoZvUhA8wHhfmKvxgESkhq/21OApfRs
+    qQqjX+/CJnzg6Fqwo1AC81hrSm9Ov5ljDZS9HbD4vYP2/KYnmrs31KdT+O40Vr4B
+    T6obizeHjM0xHxQffC/aXSTDdfU4JwUGYSudu27rz1fyhGGEqrIFq0lpqyYtQvWE
+    UG0cu9bh/k6foEJ/DGYidV/8IkLQzYmCP70x5OKMCfv30wathoFpaW4E4Cc++eGy
+    srj8SlV0sV19uB/f39dStDeBE/addOR5XWb/fGt4GQKBgQD4MtJSsYZgpypsqRlD
+    UdQANEQMzgXfRadVsS++1bmmgeyKNPkwI1TLHTviWJtGuCHanKo//yAkea4QPiuw
+    zOSa53kT8pyWcSUIhNJYZSDk2J13k/tOZyi+9B9XKP/ic3ScS5sHGulRx8hmnRq7
+    PQAxVBNtkLyAds6bsTyL3pQnnQKBgQDnoVznGRwIHEiLpW0uiA6qgak65So8DHnK
+    OE4P0dB5UkgdVgnTvO2Fxlcgo1HHpIkVBpFwupB+QzFEsGS1iwp+SeIlRiGbDuAl
+    k72okb1wEw0KFpF2487Un27CwuvkpV8dHr7eRVoW+T5eU9Vrp1bN95OUCxHBkPJ1
+    s2XYUHscqQKBgQDHmRdLKTjHwad8ewC2Arha8a1IHubaB0nqv/OFpJsILLPs8Wz0
+    KXWnYnsmK9uzo6CWDidcD+/pZXF13omERUIS0NOuFw2Wbqc5kpcWPz2UzB7Wa0tO
+    YeeCqRALKA2gLvk4OBUUQbAg9GlVHELDEOt2wAZftmXhaan9yyrF0NmUgQKBgEbj
+    aoRLefm9djJOwXhhKWPjZMBijCduhgNuce2Df/LxTKK1xzIm+uZbCiUx9oBMCawG
+    o5JFdp09wSFNfrTUxbRatjxEF1rWFaFKctvZJonbOr1gpMom9BC8bnBqqTkDp3VJ
+    CI8L2IN5ai4CKCnXP8ivQVoofRmpW5rL+ZpXHyZpAoGAK6+Ocf29i2l5W92WQ9EC
+    cTGnLWZ6/hqdwPv2xvrKQdwjl1FXWgRNUmVIft8Kn4YhsIBC+glu2kkQ9IKVs1qe
+    6y4sbW9Ku1rGElhpxeYFZa8/mwaMPNfoRmEgwLXXQfv4Z/bqzxcSiLZZygVXj2zy
+    6xVvHhZhQipePqTRsWyFO/M=
+    -----END PRIVATE KEY-----
+kind: ConfigMap
 metadata:
-  name: vgpu-client-cert
+  name: privkey
   namespace: vgpu
-spec:
-  secretName: vgpu-client-cert
-  usages:
-    - client auth
-  commonName: client
-  issuerRef:
-    name: vgpu-client-ca-issuer
-    kind: Issuer
-    group: cert-manager.io
+---
+apiVersion: v1
+data:
+  webserver.key: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDgVnWHcYI2QgkG
+    RU9BZHNSNhpDbrVZOHNSxL+sEoJ7z4Kfu9VjizvyrNzLiLeij30t0RXPYYzLcrXz
+    T4tVL8IXsDxm6xlB6xZkwY19zZZ+1K3XfnMhEQSSb3DHxSINcVeKs1PIlt8dQqg+
+    5JshSG4EfbNWK+SLiS0MZAOiaZlCD5zgyHN5o+KpKaOuZwrBX8Q1VwLx4AKhKmBu
+    jmV2PR6GOufZE+UtKcnXiqkfsHwyu7/xcsh6UBjtQ4XWDj60QDuxHloqqaSWkkln
+    3R6Lu1wdMZC87dH73Ju8RV0hbCGBFQp+7Y19xCSQwR3lLv493X6p3UwDPsbNJDAN
+    D75xFTKXAgMBAAECggEAR5xRuAKLxjYeG1pUilM+XKfYil30lZ5ncaxMYuklrc/3
+    qnWTEEuJv1VexbnGpKWZF97+T0ycXPUpD5n8qByuoFEpdtDlJx2b8F24hMfzmljZ
+    hUhgB9Ye13+rSJms3Q2pHCVSQV2nqvd0LV9cBavRMq3NaVxpgAEx2Bq07ks3GNa5
+    /96HPKj3aQERxIgEVmIIX9E3YpESM4a8LqEFJPwz1x/sg3Ur8Xw6mvESpMMi/kRl
+    zlWs6WQjreo0FR7N5X/FT5ZC3YRgow/hmOqJvRQXAO31cRRQ5VM4ThB+l7qnyB/8
+    tFwzIOBn9qAW0UL0Fi21yOyH//jW3rDsehkWLP4ygQKBgQDz5aSSornYjI6Kmz11
+    sjGpJrWq1Kl10da7F79CafuAhWRsOff3z6m0qTM5VdG8OCvOhXz3eUMovwQQDLNP
+    1iHUiAzek4GfDf6d1WDj5v4XvQuNEZLYWGbdz38sce0hpFKlJsCBzvYLYpmKRRLD
+    oYMZ2gRuG70yDioLZI/Bnwjf6QKBgQDreFf4ZMOdOfgQ4YHGz3ghfuX6xbAUVzIr
+    MjrgA1TLfAs0aMF6Wl2Ssd6pYNqkKK3ZgGDHIMGX81cHXgZpSKiyWl1Sn5WwRbT+
+    +HFtjfS5fx78VsBGLHcLJlPjPxho3xyY+xCpbiZkFUnGH6Xne4kj0z7EGjTYGs6K
+    VgC37LhufwKBgDMJcQDGUIGCGCnlBl1kpoOw9/8BdVyURozsETfCmcBxKWyETOFs
+    cSS+61sqHDN4xaH3yQi4NVeHcUAyiCtCsd2Zgqfo0g0IjqlUh2vpYG5zPsGMVeAz
+    z4LG8uPIC0ko66pni40eU9paDasjfSO23opAVwD7iQG6eQ3dQz/PGbpRAoGAH9y0
+    6qOX5JqHeqFJEkHYm4+0Ru6hGN+DplyxosZQnwg16+2Q4KGBr+vpmTnF3Bi1DY1V
+    ixxfldQTnqeWboCqcxfPMPLvKl8EUswDbTOcPc15v+NtORGjOhsBlupevzIRiJHQ
+    e1ywTTKkPO7jYCNTN0nKYHa7V9KoyAdDKaAahLkCgYEA6bUIzAjazmpLi2d0HWVx
+    joxcwok3gkUYkPTJ8PwInc8OlhyHy2Z2mscSx7tGpY5ZZKyvrZtvQ08kDfIzAEJt
+    IkxSb/ApX5bb1yC4cZVtamT5oWpGPll97H3WsVCVu7MS8dJQfjVM+Ek1N7l5XOU+
+    uVBKbwSnDOab9cZQSVzQP90=
+    -----END PRIVATE KEY-----
+kind: ConfigMap
+metadata:
+  name: webkey
+  namespace: vgpu
+---
+apiVersion: v1
+data:
+  webserver.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIDdzCCAl+gAwIBAgIUMim9JpEe3y7uFRw5MCjpMupODGAwDQYJKoZIhvcNAQEL
+    BQAwSzELMAkGA1UEBhMCTkwxCzAJBgNVBAgMAk5IMQwwCgYDVQQHDANBTVMxITAf
+    BgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDA2MDcxOTQ1NDRa
+    Fw0zNDA2MDUxOTQ1NDRaMEsxCzAJBgNVBAYTAk5MMQswCQYDVQQIDAJOSDEMMAoG
+    A1UEBwwDQU1TMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwggEi
+    MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDgVnWHcYI2QgkGRU9BZHNSNhpD
+    brVZOHNSxL+sEoJ7z4Kfu9VjizvyrNzLiLeij30t0RXPYYzLcrXzT4tVL8IXsDxm
+    6xlB6xZkwY19zZZ+1K3XfnMhEQSSb3DHxSINcVeKs1PIlt8dQqg+5JshSG4EfbNW
+    K+SLiS0MZAOiaZlCD5zgyHN5o+KpKaOuZwrBX8Q1VwLx4AKhKmBujmV2PR6GOufZ
+    E+UtKcnXiqkfsHwyu7/xcsh6UBjtQ4XWDj60QDuxHloqqaSWkkln3R6Lu1wdMZC8
+    7dH73Ju8RV0hbCGBFQp+7Y19xCSQwR3lLv493X6p3UwDPsbNJDAND75xFTKXAgMB
+    AAGjUzBRMB0GA1UdDgQWBBR80P8ntS4KMWLO06nQgRFUZ3TzyzAfBgNVHSMEGDAW
+    gBR80P8ntS4KMWLO06nQgRFUZ3TzyzAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3
+    DQEBCwUAA4IBAQCdmNN1foe9OLlhyObUQw6DSrSat9MIgQUtlttxz1+3Et5w+fFL
+    80xGQNRfQW9U+pcS8iAIGSQOQ1zGAwcTbZme8hUzCFbW2OhlFxJtjJLvJ8xVC//f
+    pCOtWv//iYvRgOD8nu+0pOdGMwpN23uRdjon2UXxnvX8qkbaPej1Jr2yYidcXtS5
+    PIFVcYWsyGDQCN+1OB5nJ84tB/C0qS+3ZRl8lE5k9lio8wGPMkfhSqcece2SPKYg
+    fsk3j5zFmVVwgGHzqES0nRHvIs/6tD83n1NMqBMrGVIqcnO144H03UZy1NmAewDg
+    oLI7x6rztS32xvqP/eRvV/RZONIe/2iXW/BC
+    -----END CERTIFICATE-----
+kind: ConfigMap
+metadata:
+  name: webcrt
+  namespace: vgpu
