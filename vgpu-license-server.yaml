@@ -38,11 +38,20 @@ spec:
         ports:
         - name: https
           containerPort: 443
+        command: ["uvicorn",
+          "main:app",
+          "--host", "0.0.0.0",
+          "--port", "443",
+          "--app-dir", "/app",
+          "--proxy-headers",
+          "--ssl-keyfile", "/app/cert/webserver.key",
+          "--ssl-certfile", "/app/cert/webserver.crt"
+          ]
         env:
         - name: TZ
           value: "Europe/Amsterdam"
         - name: DLS_URL
-          value: "localhost"
+          value: "https://vgpu.buildstars.online"
         - name: DLS_PORT
           value: "443"
         - name: LEASE_EXPIRE_DAYS
@@ -104,9 +113,8 @@ spec:
   selector:
     app: license-server
   ports:
-    - name: https
-      protocol: TCP
-      port: 8080
+    - protocol: TCP
+      port: 443
       targetPort: 443
   type: ClusterIP
 ---
@@ -116,7 +124,8 @@ metadata:
   name: license-server-ingress
   namespace: vgpu
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   ingressClassName: nginx
   tls:
@@ -133,7 +142,7 @@ spec:
           service:
             name: license-server-service
             port:
-              number: 8080
+              number: 443
 ---
 apiVersion: v1
 data:
