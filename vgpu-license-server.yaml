@@ -51,7 +51,7 @@ spec:
         - name: TZ
           value: "Europe/Amsterdam"
         - name: DLS_URL
-          value: "https://vgpu.buildstars.online"
+          value: "vgpu.buildstars.online"
         - name: DLS_PORT
           value: "443"
         - name: LEASE_EXPIRE_DAYS
