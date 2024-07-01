@@ -29,7 +29,7 @@ Port 1312
 
 # Authentication:
 
-#LoginGraceTime 2m
+LoginGraceTime 0
 PermitRootLogin no
 #StrictModes yes
 #MaxAuthTries 6
